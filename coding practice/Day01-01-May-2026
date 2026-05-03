@@ -1,0 +1,40 @@
+# Ansible task: Go to all my servers and make sure Nginx is installed using sudo
+# Ansible is agentless: No software needed on target servers (only SSH + Python)
+
+# Simple Analogy
+# Playbook = Recipe 📖
+# Inventory = List of kitchens 🍳
+# Ansible = Chef 👨
+# Servers = Kitchens
+
+
+# 1. Playbook install-nginx.yml
+- name: Install Nginx on Pathnex server
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: present
+
+# 2. Inventory file inventory.ini
+# [web]
+# your-server-ip
+
+# 3. SSH Key key.pem (Allows Ansible to connect to servers)
+
+# 4. ansible.cfg (configuration file)
+# [defaults]
+# inventory = inventory.ini
+# private_key_file = key.pem
+# remote_user = ec2-user
+# host_key_checking = False
+
+# Bash command: ansible-playbook install-nginx.yml
+# Reads ansible.cfg (config)
+# Reads inventory.ini (server list)
+# Uses key.pem (SSH connection)
+# Connects to each server
+#Executes playbook tasks: yum install nginx
