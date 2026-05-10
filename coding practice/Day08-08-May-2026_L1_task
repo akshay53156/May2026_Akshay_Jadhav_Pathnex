@@ -1,0 +1,184 @@
+# Ansible — Install Packages Using Variables
+
+- name: Install packages
+  hosts: all
+  become: yes
+  
+  vars:
+    pathnex_packages:
+      - tree
+      - vim
+      - unzip
+
+  tasks:
+    - name: Install required packages
+      yum:
+        name: "{{pathnex_packages}}"
+	state: present
+
+****************************************
+
+# Terraform — Create VPC + Subnet
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_vpc" "PathnexVPC" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "Pathnex-VPC"
+  }
+}
+
+resource "aws_subnet" "PathnexWebAppSubnet" {
+  vpc_id = aws_vpc.PathnexVPC.id
+  cidr_block = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "Pathnex-Subnet"
+  }
+}
+
+# Kubernetes — Add Liveness & Readiness Probes
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: Pathnex-probe-app
+spec:
+  containers:
+    - name: web
+      image: nginx
+      livenessProbe:
+        httpGet:
+	  path: /
+	  port: 80
+	initialDelaySeconds: 5
+      readinessProbe:
+        httpGet:
+	  path: /
+	  port: 80
+	initialDelaySeconds: 5
+***********************************
+
+#Shell Script — Loop Through List
+#!/bin/bash
+
+for item in Pathnex_Devops_Training; do
+  echo "Item: $item"
+  done
+*********************************
+
+# Jenkins Pipeline — Conditional Execution
+
+pipeline {
+  agent any
+
+  environment {
+    INSTITUTE_NAME = "Pathnex"
+  }
+
+  parameters {
+    string (name: "ENVIRONMENT", defaultValue: "Dev", description: "Deploying on Dev" )
+  }
+
+  stages {
+    stage ('Checkout') {
+      steps {
+         git branch: main, url: "http://github.com/Pathnex/sample-java-code.git"
+      }
+    }
+
+    stage ('Build') {
+
+      when {
+         branch 'main'
+      }
+
+      steps {
+         sh 'mvn clean compile'
+      }
+    }
+
+    stage ('Deploy') {
+      when {
+         expression {params.environment == "Dev"}
+      }
+
+      steps {
+         sh 'echo "Deploying on $ENVIRONMENT by $INSTITUTE_NAME" '
+      }
+    }
+  }
+}
+
+
+# GitLab CI — Conditional Jobs
+#You will learn how to **run jobs based on variables or branches**.
+
+stages:
+  - build
+  - deploy
+
+variables:
+  INSTITUTE_NAME: "Pathnex"
+  ENVIRONMENT: "dev"
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - git clone http://github.com/Pathnex/sample-java-code.git
+    - cd sample-java-code
+    - mvn clean compile
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "Deploying to $CI_ENVIRONMENT_NAME by Pathnex"
+  only:
+    variables:
+      - CI_ENVIRONMENT_NAME = "dev"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,146 @@
+# Da# Day 07 — SPEED TYPING
+
+Rewrite ALL FOUR from scratch:
+
+1. Ansible: Install nginx
+2. Terraform: EC2 (choose any Pathnex instance)
+3. Kubernetes: Deployment 2 replicas
+4. Shell: Print date + uptime
+
+Set a timer: **20 minutes**y 07 — SPEED TYPING
+
+Rewrite ALL FOUR from scratch:
+22:14 - 22:23
+1. Ansible: Install nginx
+- name: Install nginx
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Nginx
+
+      yum:
+        name: nginx
+        state: present
+
+2. Terraform: EC2 (choose any Pathnex instance)
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "PathnexEC2" {
+  ami = "ami-abcd1234abcd1234"
+  instance_type = "t3.micro"
+  count = 1
+
+  tags = {
+    Name = "Pathnex"
+  }
+}
+
+3. Kubernetes: Deployment 2 replicas
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "Pathnex-app"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+        app: "Pathnex-app"
+  
+  template:
+    metadate:
+      labels:
+        app: "Pathnex-app"
+    spec:
+      containers:
+        - name: nginx
+	  image: nginx
+	  ports:
+	    containerPort: 80
+
+
+4. Shell: Print date + uptime
+#!/bin/bash
+echo "Current date: $(date)"
+echo "System uptime: $(uptime)"
+
+Set a timer: **20 minutes**
+
+# Jenkins Pipeline — Parameterized
+
+pipeline {
+  agent any
+
+  environment {
+    INSTITUTE_NAME = "Pathnex"
+  }
+
+  parameters {
+    string(name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Deployment Environment')
+
+  }
+
+  stages {
+    stage ("Checkout") {
+      stage {
+        steps{
+            git url: 'http://github.com/Pathnex/sample-java-code.git'
+	}
+      }
+    }
+
+    stage ("Deploy") {
+      stage {
+        steps{
+            sh 'echo "Deploying to $ENVIRONMENT by $INSTITUTE_NAME" '
+        }
+      }
+    }
+  }
+}
+
+#GitLab CI — Parameterized via Variables
+
+
+stages:
+  - deploy
+
+variables:
+  INSTITUTE_NAME: "Pathnex"
+  ENVIRONMENT: "Dev"
+
+deploy:
+  stage: deploy
+  image: alpine: latest
+  script:
+    - echo "Deploying to $ENVIRONMENT by $INSTITUTE_NAME"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
