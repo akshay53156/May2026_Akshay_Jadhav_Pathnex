@@ -1,0 +1,108 @@
+# Ansible — Use Jinja2 Template
+
+- name: Deploy template for pathnex
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Copy template file
+    template:
+        src: pathnex.conf.j2
+        dest: /etc/pathnex.conf
+
+*******************************************
+# Terraform — Internet Gateway
+
+resource "aws_internet_gateway" "PathnexIGW" {
+  vpc_id = aws_vpc.PathnexVPC.id
+
+  tags = {
+    Name = "PathnexIGW"
+  }
+}
+**********************************************
+
+# Kubernetes — Create ConfigMap
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pathnex-config
+data:
+  APP_MODE: "production"
+  WELCOME_MSG: "Hello Pathnex"
+****************************************
+
+# Shell Script — Check CPU Load
+
+#!/bin/bash
+
+LOAD=$(uptime | awk '{print $10}')
+echo "check load: $LOAD"
+*************************************
+
+# Jenkins Pipeline — Archive Artifacts
+pipeline {
+  agent any
+
+  environment {
+    INSTITUTE_NAME = "Pathnex"
+  }
+
+  stages {
+    stage ('checkout') {
+      steps {
+         git url: "http://github.com/Pathnex/sample-java-code.git"
+      }
+    }
+
+    stage ('Build') {
+      steps {
+         sh 'mvn clean package'
+      }
+    }
+
+    stage ('Archive') {
+      steps {
+         archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+      }
+    }
+  }
+}
+
+*********************************************************************
+
+# GitLab CI — Artifacts
+
+stages:
+  - build
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - git clone http://github.com/Pathnex/sample-java-code.git
+    - cd sample-java-code
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 week
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
