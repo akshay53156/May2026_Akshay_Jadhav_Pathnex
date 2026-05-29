@@ -1,0 +1,129 @@
+# Ansible — Install Java & Set JAVA_HOME
+
+- name: Install Java and set JAVA_HOME
+  hosts: all
+  become: yes
+
+  tasks:
+   - name: Install OpenJDK
+     yum:
+       name: java-11-openjdk
+       state: present
+
+   - name: Set JAVA_HOME
+     lineinfile:
+       path: /etc/profile
+       line: 'EXPORT JAVA_HOME=/usr/lib/jvm/java-11-openjdk'
+
+********************************************
+
+#  Terraform — Create S3 Bucket
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_s3_bucket" "PathnexS3" {
+  bucket = "Pathnex-Devops-Bucket"
+
+  tags = {
+    Name = "PathnexS3Bucket"
+  }
+}
+
+**********************************************
+
+# Kubernetes — CronJob
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: Pathnex-cron
+spec:
+  schedule: "*/5 * * * *"
+  JobTemplate:
+    spec:
+      template:
+        spec:
+	  containers:
+	    - name: job
+	      image: busybox
+	      command: ["sh", "-c", "echo Pathnex cronjob running"]
+	  restartPolicy: OnFailure
+***********************************************************************
+
+# Shell Script — Read File Line-by-Line
+
+#!/bin/bash
+
+FILE="/etc/passwd"
+
+while read line; do
+  echo "Line: $line"
+done < $FILE
+
+**********************************************************
+
+# Jenkins Pipeline — Slack Notification
+
+
+pipeline {
+  agent any
+
+  environment {
+        INSTITUTE_NAME = "Pathnex"
+        SLACK_CHANNEL = "#devops"
+  }
+    stages {
+      stage ('Checkout') {
+        steps {
+          git url: 'https://github.com/pathnex/sample-java-code.git'
+	}
+      }
+
+      stage ('Build') {
+        steps {
+          sh 'mvn clean compile'
+        }
+      }
+    }
+    post {
+      success {
+	slackSend(channel: "$SLACK_CHANNEL", message: "SUCCESS: $INSTITUTE_NAME Build #${env.BUILD_NUMBER}")
+      }
+      failure {
+	slackSend(channel: "$SLACK_CHANNEL", message: "FAILURE: $INSTITUTE_NAME Build #${env.BUILD_NUMBER}")
+      }
+    }
+  
+}
+
+*******************************************************************************************************
+
+# GitLab CI — Slack Notification
+
+stages:
+ - build
+
+variables:
+  INSTITUTE_NAME: "Pathnex"
+  SLACK_WEBHOOK: "https://hooks.slack.com/services/XXXXX/YYYYY/ZZZZZ"
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - git clone https://github.com/pathnex/sample-java-code.git
+    - cd sample-java-code
+    - mvn clean compile
+    - curl -X POST -H 'Content-type: application/json' --data '{"text":"Build success for Pathnex"}' $SLACK_WEBHOOK
+
+
+
+
+
+
+
+
+
+
