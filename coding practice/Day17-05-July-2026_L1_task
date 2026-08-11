@@ -1,0 +1,132 @@
+#Ansible — Create Multiple Users in Loop
+
+---
+- name: Ansible Create multiple users
+  hosts: all
+  become: yes
+
+  vars:
+    users:
+      - dev1
+      - dev2
+      - dev3
+
+  tasks:
+    - name:create pathnex users
+      user:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ users }}"
+
+*******************************************
+
+#terraform create loadbalancer
+
+resource "aws_lb" "PathnexALB" {
+  name = "Pathnex-alb"
+  load_balancer_type = "Application"
+  subnet_id = [aws_subnet.PathnexSubnet.id]
+
+  tags = {
+    name = "Pathnex-alb"
+  }
+}
+
+*****************************************
+
+#Kubernetes — Namespace + Deployment
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pathnex-namespace
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pathnex-deploy
+  namespace: pathnex-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLebels:
+      app: pathnex
+  template:
+    metadata:
+      labels:
+        app: pathnex
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+
+********************************************
+
+#Shell Script — Top 5 Memory Processes
+
+#!/bin/bash
+
+ps aux --sort=-%mem | head -n 6
+
+******************************************
+
+# Jenkins Pipeline — Simulated Deployment
+
+pipeline {
+  agent any {
+    parameters {
+      choice (name: 'ENVIRONMENT', choices: ['dev', 'staging', '[prod]], description: 'deployment environment')      
+    }
+
+    environments {
+      INSTITUTE_NAME = 'Pathnex'
+    }
+
+    stages {
+      stage ('Deploy') {
+        step {
+          sh 'echo "Deploying $INSTITUTE_NAME Application to $ENVIRONMENT"'
+	      }
+      }
+    }
+  }
+}
+
+*********************************************
+
+# GitLab CI — Deployment Simulation
+
+stages:
+  - deploy
+
+variables:
+  INSTITUTE_NAME: "Pathnex"
+  ENVIRONMENT: "staging"
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "Deploying $INSTITUTE_NAME application to $ENVIRONMENT"
+
+---
+pipeline {
+  agent any {
+    stages {
+      stage ('clone'){
+        steps {
+          git clone 
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+

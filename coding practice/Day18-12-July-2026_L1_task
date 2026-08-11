@@ -1,0 +1,53 @@
+#Day 18 — Facts, Variables, Affinity, Log Archiving
+
+#Ansible — Use Ansible Facts
+
+---
+- name: Show system facts for Pathnex
+  hosts: all
+
+  tasks:
+    - name: Print OS info
+      debug:
+        var: ansible_facts['os_family']
+    - name: Print IP address
+      debug:
+        var: ansible_facts['default_ipv4']['address']
+*******************************************************
+#Terraform variables, outputs, tfvars
+
+#variables
+variable "instance_type" {
+    default = "c7i-flex.large
+}
+
+#outputs
+output "pathnex_ip" {
+    value = aws_instance.pathnex-server.public_ip
+}
+
+#main.tf
+resource "aws_instance" "pathnex-server" {
+    ami = "ami-abcd0123efgh4567"
+    instance_type = var.instance_type
+}
+********************************************
+
+#Jenkins Pipeline- Rollback on failure
+
+pipeline {
+    agent any {
+    environment {
+        institute_name = "Pathnex"
+    }
+
+        stages {
+            stage ('Deploy') {
+                step {
+                    
+                }
+            }
+        }
+    }
+}
+
