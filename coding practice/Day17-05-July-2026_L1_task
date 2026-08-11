@@ -110,6 +110,19 @@ deploy:
   script:
     - echo "Deploying $INSTITUTE_NAME application to $ENVIRONMENT"
 
+---
+pipeline {
+  agent any {
+    stages {
+      stage ('clone'){
+        steps {
+          git clone 
+        }
+      }
+    }
+  }
+}
+
 
 
 
