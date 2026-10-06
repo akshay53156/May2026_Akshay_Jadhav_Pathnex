@@ -1,0 +1,132 @@
+# Day 10 — Advanced Kubernetes, Jenkins, and GitLab CI
+
+# Ansible: create docker containers for multiple applications
+---
+- name: Setup Docker containers for multiple applications
+  hosts: all
+  enabled: yes
+
+  tasks:
+    - name: Pull webapp image
+      docker_image:
+        name: my-web-app
+        source: pull
+
+    - name: Pull database app image
+      docker_image:
+        name: my-db-app
+        source: pull
+
+    - name: Run webapp docker container
+      docker_container:
+        name: web-app
+        image: my-web-app
+        state: started
+        published_ports:
+          - "8080:80"
+
+    - name: Run Database docker container
+      docker_container:
+        name: db-app
+        image: my-db-app
+        state: present
+        published_ports:
+          - "3306:3306"
+
+# Terraform: public and private Subnet
+
+resource "aws_vpc" "demo_vpc" {
+    cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_subnet" "demo_publicSubnet" {
+    vpc_id = aws_vpc.demo_vpc.id
+    cidr_block = "10.0.1.0/24"
+    availability_zone = "us-east-1a"
+    map_public_ip_on_launch = true
+}
+
+resource "aws_subnet" "demo_privateSubnet" {
+    vpc_id = aws_vpc.demo_vpc.id
+    cidr_block = "10.0.2.0/24"
+    availability_zone = "us-east-1b"
+}
+
+# Kubernetes: Deploy StatefulSet
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-statefulset
+spec:
+  replicas: 3
+  selector:
+    matchLables:
+      app: db-app
+  template:
+    metadata:
+      labels:
+        app: db-app
+  spec:
+    containers:
+      - name: db
+        image: mysql:5.7
+        volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: mysql-storage
+
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+
+# Jenkinsfile: Build and Deploy to kubernetes
+
+pipeline {
+  agent any 
+  environment {
+    IMAGE_NAME = "pathnex-web-app"
+  }
+
+  stages {
+    stage ('Build docker image') {
+      steps {
+        script {
+          docker.build("${env.IMAGE_NAME}")
+        }
+      }
+    }
+
+    stage ('Push docker image to ECR') {
+      steps {
+        script {
+          docker.withRegistry('https://docker.io', 'docker-credentials') {
+            docker.image(${env.IMAGE_NAME}).push('latest')
+          }
+        }
+      }
+    }
+
+    stage ('Deploy to Kubernetes') {
+      steps {
+        script {
+          kubectl apply -f deployment.yaml
+        }
+      }
+    }
+  }
+}
+
+# Docker
+
+FROM ubuntu:24.04
+WORKDIR /opt/pathnex/devops-project
+COPY . /opt/pathnex/devops-project
+CMD ["ls", "-l", "/opt/pathnex/devops-project"]
+
+# Real Path
+/opt/pathnex/devops-project
